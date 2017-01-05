@@ -26,7 +26,7 @@ try:
 except:
 	print("Error in scraping share data. Share name is probably incorrect or Yahoo Finance is down.")
 	quit()
-print("Scrape succesful", historical_data)
+print("Scrape succesful")
 
 #Process the returned data into 3 lists of: open_price, close_price, and volume
 try:
@@ -36,3 +36,20 @@ try:
 except ValueError:
 	print("Error in processing share data.")
 	quit()
+
+#Take the historical data and form a training set for the neural net.
+#Each training example has 2 linear inputs: the opening share price of the day
+#and the previous day; and 1 binary output: whether the opening share price
+#increased on the day after.
+training_input = np.array([])
+training_target = np.array([])
+
+for i in range(1, len(open_price)-1):
+	training_input = np.append(training_input, [open_price[i-1:i+1]])
+	training_target = np.append(training_target, [open_price[i+1] > open_price[i]])
+
+#The above for loop makes 1-dim arrays with the values in them. Need to use reshape
+#on the input data to make it 2-dim. The -1 in reshape will be filled automatically
+#and the 2 is there as there should be 2 columns for each input.
+training_input = np.reshape(training_input, (-1,2))
+
