@@ -79,7 +79,8 @@ minmax.append(volume_minmax) #Build the input of the network for volume
 net = nl.net.newp(minmax, 1)
 
 #Train the neural network using delta trainer with set epochs and output display
-training_error = net.train(training_input, training_target, epochs=100, show=25)
+net.errorf = nl.error.CEE()
+training_error = net.train(training_input, training_target, epochs=100, show=10)
 
 # # Plot results
 # import pylab as pl
