@@ -16,7 +16,7 @@ print("Designed and implemented by Dane Laban")
 #
 #Configurable settings
 share_name = 'ANZ.AX'
-start_date = '2015-01-01'
+start_date = '2005-01-01'
 end_date = '2016-01-01'
 
 #Scrape the data for the given settings and exit if there is an error
@@ -37,10 +37,10 @@ except ValueError:
 	print("Error in processing share data.")
 	quit()
 
-#Take the historical data and form a training set for the neural net.
-#Each training example has 3 linear inputs: the opening share price of the day
-#and the previous day and the volume of the day; and 1 binary output: whether 
-#the opening share price increased on the day after.
+# Take the historical data and form a training set for the neural net.
+# Each training example is built from a range of days and contains:
+# an input for the open share price on each day in the range and the volume on the last day
+# The output is binary:whether the opening share price increased on the day after the last day.
 days_of_data = 20 #Set how many inputs are used in the network for open price
 
 training_input = np.array([])
@@ -48,13 +48,13 @@ training_target = np.array([])
 
 for i in range(0, len(open_price)-days_of_data):
 	training_input = np.append(training_input, open_price[i:i+days_of_data])
-	training_input = np.append(training_input, volume[i])
+	training_input = np.append(training_input, volume[i+days_of_data-1])
 	training_target = np.append(training_target, open_price[i+days_of_data-1] > open_price[i+days_of_data] )
 
 
 #The above for loop makes 1-dim arrays with the values in them. Need to use reshape
 #on the input and training data to make it 2-dim. The -1 in reshape will be filled 
-#automatically and the 2 is there as there should be 3 columns for each input. Likewise
+#automatically and (days_of_data +1) is the number of columns for each input. Likewise
 #for the target array.
 
 training_input = np.reshape(training_input, (-1, days_of_data+1))
@@ -67,14 +67,13 @@ volume_minmax = [np.min(volume), np.max(volume)]
 
 minmax = []
 for i in range(0,days_of_data):
-	minmax.append(open_minmax)
-minmax.append(volume_minmax)
+	minmax.append(open_minmax) # Build the inputs of the network with open price data
+minmax.append(volume_minmax) #Build the input of the network for volume
 
 net = nl.net.newp(minmax, 1)
 
-#Train the neural network using delta trainer with 100 epochs (displaying every 10)
-#with a learning rate of 0.1
-training_error = net.train(training_input, training_target, epochs=100, show=10)
+#Train the neural network using delta trainer with set epochs and output display
+training_error = net.train(training_input, training_target, epochs=100, show=25)
 
 # # Plot results
 # import pylab as pl
