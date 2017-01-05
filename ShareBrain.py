@@ -16,17 +16,23 @@ print("Designed and implemented by Dane Laban")
 #
 #Configurable settings
 share_name = 'ANZ.AX'
-start_date = '2015-01-01'
+start_date = '2005-01-01'
 end_date = '2016-01-01'
 
-#Scrape the data for the given settings and exit if there is an error
-print("Attempting to scrape data for", share_name)
 try:
-	historical_data = Share(share_name).get_historical(start_date, end_date)
+	historical_data = np.load("Data/ANZ Data.npy")
+	print("Data successfully loaded from locally stored file")
 except:
-	print("Error in scraping share data. Share name is probably incorrect or Yahoo Finance is down.")
-	quit()
-print("Scrape succesful")
+	#Scrape the data for the given settings and exit if there is an error
+	print("Attempting to scrape data for", share_name)
+	try:
+		historical_data = Share(share_name).get_historical(start_date, end_date)
+		np.save("Data/ANZ Data.npy",historical_data)
+	except:
+		print("Error in scraping share data. Share name is probably incorrect or Yahoo Finance is down.")
+		quit()
+	print("Scrape succesful")
+
 
 #Process the returned data into 3 lists of: open_price, close_price, and volume
 try:
@@ -76,7 +82,7 @@ net = nl.net.newff(minmax, [5,1])
 
 #Train the neural network using gradient descent with backprop trainer with set epochs and output display
 net.errorf = nl.error.CEE()
-training_error = net.train(training_input, training_target, epochs=100, show=5)
+training_error = net.train(training_input, training_target, epochs=100, show=10)
 
 # # Plot results
 # import pylab as pl
