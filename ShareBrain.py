@@ -47,14 +47,14 @@ except ValueError:
 # Each training example is built from a range of days and contains:
 # an input for the open share price on each day in the range and the volume on the last day
 # The output is binary:whether the opening share price increased on the day after the last day.
-days_of_data = 20 #Set how many inputs are used in the network for open price
+days_of_data = 30 #Set how many inputs are used in the network for open price
 
 training_input = np.array([])
 training_target = np.array([])
 
 for i in range(0, len(open_price)-days_of_data):
 	training_input = np.append(training_input, open_price[i:i+days_of_data])
-	training_input = np.append(training_input, volume[i+days_of_data-1])
+#	training_input = np.append(training_input, volume[i+days_of_data-1])
 	training_target = np.append(training_target, open_price[i+days_of_data-1] > open_price[i+days_of_data] )
 
 
@@ -63,24 +63,21 @@ for i in range(0, len(open_price)-days_of_data):
 #automatically and (days_of_data +1) is the number of columns for each input. Likewise
 #for the target array.
 
-training_input = np.reshape(training_input, (-1, days_of_data+1))
+training_input = np.reshape(training_input, (-1, days_of_data))
 training_target = np.reshape(training_target, (-1,1))
 
-#Setting up the neural network as a single layer perceptron. Need to work out the min
-#and max of each training datatype and use them to define each input to the neural net.
-open_minmax = [np.min(open_price), np.max(open_price)]
-volume_minmax = [np.min(volume), np.max(volume)]
+#Need to work out the min and max of each training datatype and use them to 
+#define each input to the neural net.
 
-minmax = []
-for i in range(0,days_of_data):
-	minmax.append(open_minmax) # Build the inputs of the network with open price data
-minmax.append(volume_minmax) #Build the input of the network for volume
+minmax = nl.tool.minmax(training_input)
 
-net = nl.net.newp(minmax, 1)
+#Setting up the neural network as a multi-layer perceptron with (days_of_data +1) inputs,
+#1 hidden layer with 10 neurons and 1 output layer
+net = nl.net.newff(minmax, [30,20,1], transf=[nl.trans.LogSig(),nl.trans.LogSig(),nl.trans.LogSig()])
 
-#Train the neural network using delta trainer with set epochs and output display
+#Train the neural network using gradient descent with backprop trainer with set epochs and output display
 net.errorf = nl.error.CEE()
-training_error = net.train(training_input, training_target, epochs=100, show=10)
+training_error = net.train(training_input, training_target,epochs=500,show=10,goal=0.2)
 
 # # Plot results
 # import pylab as pl
@@ -94,3 +91,8 @@ training_error = net.train(training_input, training_target, epochs=100, show=10)
 simulated_target = np.round(net.sim(training_input))
 correct_predictions = np.sum( np.equal(simulated_target, training_target) ) / len(simulated_target) * 100
 print("The network is {0:.2f}% correct from the training data.".format(correct_predictions))
+
+#Ask if the network should be saved or discarded
+if input("Would you like to save the network (y/n):") == 'y':
+	net.save(input("Enter the filename to save to (.net):"))
+	print("File saved successfully")
