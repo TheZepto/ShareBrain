@@ -50,7 +50,7 @@ def get_share_data_boolean_target(
 
 	# Take the historical data and form a training set for the neural net.
 	# Each training example is built from a range of days and contains:
-	# the open and close share price and the trading volume on each day in the range.
+	# the open and close share price on each day in the range.
 	# The output is boolean indicating if the close price tomorrow is greater than today.
 
 	training_input = np.array([])
@@ -61,7 +61,6 @@ def get_share_data_boolean_target(
 	for i in range(0, training_example_number):
 		training_input = np.append(training_input, open_price[i:i+days_of_data])
 		training_input = np.append(training_input, close_price[i:i+days_of_data])
-		training_input = np.append(training_input, volume[i:i+days_of_data])
 		training_target = np.append(training_target, close_price[i+days_of_data] > close_price[i+days_of_data-1] )
 
 
@@ -71,7 +70,7 @@ def get_share_data_boolean_target(
 	# automatically and (days_of_data +1) is the number of columns for each input. Likewise
 	# for the target array.
 
-	training_input = np.reshape(training_input, (-1, 3*days_of_data))
+	training_input = np.reshape(training_input, (-1, 2*days_of_data))
 	training_target = np.reshape(training_target, (-1,))
 	
 	return (training_input, training_target)

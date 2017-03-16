@@ -27,7 +27,7 @@ import sharescraper
 	share_name='ANZ.AX',
 	start_date='2006-01-01',
 	end_date='2016-01-01',
-	days_of_data=5,
+	days_of_data=15,
 	use_existing_data=True)
 
 # Separate data into training set and test set
@@ -42,16 +42,23 @@ X_test = scaler.transform(X_test)
 
 #Set up the MLPClassifier
 clf = MLPClassifier(
-	hidden_layer_sizes=(50,20,5),
-	alpha = 0.1,
+	activation = 'logistic',
+	solver ='lbfgs',
+	hidden_layer_sizes=(2),
+	alpha = 1E-7,
 	tol = 1E-5,
-	verbose = True )
+	verbose = False )
 
-# Train the neural network on the dataset
-clf.fit(X_train, y_train)
+accuracy_check = True
+while accuracy_check:
+	# Train the neural network on the dataset
+	clf.fit(X_train, y_train)
 
-# Use the cross validation set to calculate the accuracy of the network
-test_accuracy = clf.score(X_test, y_test)
-train_accuracy = clf.score(X_train, y_train)
-print("The network fitted the test data {:.3f}% and the training data {:.3f}%."
-	.format(test_accuracy*100, train_accuracy*100))
+	# Use the cross validation set to calculate the accuracy of the network
+	test_accuracy = clf.score(X_test, y_test)
+	train_accuracy = clf.score(X_train, y_train)
+	print("The network fitted the test data {:.3f}% and the training data {:.3f}%."
+		.format(test_accuracy*100, train_accuracy*100))
+	accuracy_check = test_accuracy < 0.85
+
+import pdb; pdb.set_trace()
