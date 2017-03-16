@@ -27,7 +27,7 @@ import sharescraper
 	share_name='ANZ.AX',
 	start_date='2006-01-01',
 	end_date='2016-01-01',
-	days_of_data=20,
+	days_of_data=5,
 	use_existing_data=True)
 
 # Separate data into training set and test set
