@@ -27,7 +27,7 @@ import sharescraper
 	share_name='ANZ.AX',
 	start_date='2006-01-01',
 	end_date='2016-01-01',
-	days_of_data=20,
+	days_of_data=5,
 	use_existing_data=True)
 
 # Separate data into training set and test set
@@ -42,7 +42,7 @@ X_test = scaler.transform(X_test)
 
 #Set up the MLPClassifier
 clf = MLPClassifier(
-	hidden_layer_sizes=(500,500,500,50,5),
+	hidden_layer_sizes=(50,20,5),
 	alpha = 0.1,
 	tol = 1E-5,
 	verbose = True )
