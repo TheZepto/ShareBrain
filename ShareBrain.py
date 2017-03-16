@@ -10,12 +10,8 @@ print("@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#")
 #common libraries
 import sys
 import numpy as np
+import sklearn
 
 #my libraries
-import shares
-import nlnet
+import sharescraper
 
-
-(training_input, training_target) = shares.get_share_data()
-
-net = nlnet.multilayer(training_input, training_target)

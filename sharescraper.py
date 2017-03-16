@@ -40,7 +40,6 @@ def get_share_data(share_name='ANZ.AX', start_date='2005-01-01', end_date='2016-
 
 	for i in range(0, len(open_price)-days_of_data):
 		training_input = np.append(training_input, open_price[i:i+days_of_data])
-	#	training_input = np.append(training_input, volume[i+days_of_data-1])
 		training_target = np.append(training_target, open_price[i+days_of_data-1] > open_price[i+days_of_data] )
 
 
