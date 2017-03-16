@@ -59,10 +59,10 @@ def get_share_data_boolean_target(
 	training_example_number = len(open_price) - days_of_data - 1
 
 	for i in range(0, training_example_number):
-		training_input = np.append(training_input, open_price[i:i+days_of_data])
+		# training_input = np.append(training_input, open_price[i:i+days_of_data])
 		training_input = np.append(training_input, close_price[i:i+days_of_data])
-		training_input = np.append(training_input, volume[i:i+days_of_data])
-		training_target = np.append(training_target, close_price[i+days_of_data] > close_price[i+days_of_data-1] )
+		# training_input = np.append(training_input, volume[i:i+days_of_data])
+		training_target = np.append(training_target, close_price[i+days_of_data-1] > close_price[i+days_of_data-2] )
 
 
 	# The above for loop makes 1-dim arrays with the values in them. Need to use reshape
@@ -71,7 +71,7 @@ def get_share_data_boolean_target(
 	# automatically and (days_of_data +1) is the number of columns for each input. Likewise
 	# for the target array.
 
-	training_input = np.reshape(training_input, (-1, 3*days_of_data))
+	training_input = np.reshape(training_input, (-1, days_of_data))
 	training_target = np.reshape(training_target, (-1,))
 	
 	return (training_input, training_target)

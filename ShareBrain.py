@@ -14,7 +14,7 @@ import sys
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.neural_network import MLPClassifier
+from sklearn.svm import SVC 
 from sklearn.model_selection import GridSearchCV
 
 # My libraries
@@ -41,11 +41,9 @@ X_train = scaler.transform(X_train)
 X_test = scaler.transform(X_test)
 
 #Set up the MLPClassifier
-clf = MLPClassifier(
-	hidden_layer_sizes=(500,500,500,50,5),
-	alpha = 0.1,
-	tol = 1E-5,
-	verbose = True )
+clf = SVC(
+	verbose = True,
+	)
 
 # Train the neural network on the dataset
 clf.fit(X_train, y_train)
