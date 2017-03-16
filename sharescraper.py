@@ -2,7 +2,12 @@ import sys
 import numpy as np
 from yahoo_finance import Share #The yahoo-finance package is used to gather the share data
 
-def get_share_data_boolean_target(share_name='ANZ.AX', start_date='2005-01-01', end_date='2016-01-01', days_of_data=30):
+def get_share_data_boolean_target(
+	share_name='ANZ.AX',
+	start_date='2005-01-01',
+	end_date='2016-01-01',
+	days_of_data=30,
+	use_existing_data=True):
 	# Srape historical share data
 	# Returns:
 	# - training_input array with the share's open price, close price and volume for
@@ -10,11 +15,21 @@ def get_share_data_boolean_target(share_name='ANZ.AX', start_date='2005-01-01', 
 	# - training_target array consist of a boolean value indicating if the closing price 
 	#   tomorrow is greater than the closing price today.
 
-	try:
-		historical_data = np.load("Data/ANZ Data.npy")
-		print("Data successfully loaded from locally stored file")
-	except:
-		#Scrape the data for the given settings and exit if there is an error
+	if use_existing_data:
+		try:
+			historical_data = np.load("Data/ANZ Data.npy")
+			print("Data successfully loaded from locally stored file")
+		except:
+			#Scrape the data for the given settings and exit if there is an error
+			print("Attempting to scrape data for", share_name)
+			try:
+				historical_data = Share(share_name).get_historical(start_date, end_date)
+				np.save("Data/ANZ Data.npy",historical_data)
+			except:
+				print("Error in scraping share data. Share name is probably incorrect or Yahoo Finance is down.")
+				quit()
+			print("Scrape succesful")
+	else:
 		print("Attempting to scrape data for", share_name)
 		try:
 			historical_data = Share(share_name).get_historical(start_date, end_date)
@@ -47,7 +62,7 @@ def get_share_data_boolean_target(share_name='ANZ.AX', start_date='2005-01-01', 
 		training_input = np.append(training_input, open_price[i:i+days_of_data])
 		training_input = np.append(training_input, close_price[i:i+days_of_data])
 		training_input = np.append(training_input, volume[i:i+days_of_data])
-		training_target = np.append(training_target, close_price[i+days_of_data+1] > close_price[i+days_of_data] )
+		training_target = np.append(training_target, close_price[i+days_of_data] > close_price[i+days_of_data-1] )
 
 
 	# The above for loop makes 1-dim arrays with the values in them. Need to use reshape
@@ -57,6 +72,6 @@ def get_share_data_boolean_target(share_name='ANZ.AX', start_date='2005-01-01', 
 	# for the target array.
 
 	training_input = np.reshape(training_input, (-1, 3*days_of_data))
-	training_target = np.reshape(training_target, (-1, 1))
+	training_target = np.reshape(training_target, (-1,))
 	
 	return (training_input, training_target)
