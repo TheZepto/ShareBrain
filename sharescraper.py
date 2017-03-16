@@ -1,10 +1,14 @@
 import sys
 import numpy as np
-from yahoo_finance import Share
+from yahoo_finance import Share #The yahoo-finance package is used to gather the share data
 
-def get_share_data(share_name='ANZ.AX', start_date='2005-01-01', end_date='2016-01-01', days_of_data=30):
-	#Srape historical share data
-	#The yahoo-finance package is used to gather the share data
+def get_share_data_boolean_target(share_name='ANZ.AX', start_date='2005-01-01', end_date='2016-01-01', days_of_data=30):
+	# Srape historical share data
+	# Returns:
+	# - training_input array with the share's open price, close price and volume for
+	#   the number of days specified in days_of_data between the start_date and end_date.
+	# - training_target array consist of a boolean value indicating if the closing price 
+	#   tomorrow is greater than the closing price today.
 
 	try:
 		historical_data = np.load("Data/ANZ Data.npy")
@@ -20,8 +24,7 @@ def get_share_data(share_name='ANZ.AX', start_date='2005-01-01', end_date='2016-
 			quit()
 		print("Scrape succesful")
 
-
-	#Process the returned data into 3 lists of: open_price, close_price, and volume
+	# Process the returned data into 3 lists of: open_price, close_price, and volume
 	try:
 		open_price = [float(historical_data[i]['Open']) for i in range(0,len(historical_data)) ]
 		close_price = [float(historical_data[i]['Close']) for i in range(0,len(historical_data)) ]
@@ -32,23 +35,28 @@ def get_share_data(share_name='ANZ.AX', start_date='2005-01-01', end_date='2016-
 
 	# Take the historical data and form a training set for the neural net.
 	# Each training example is built from a range of days and contains:
-	# an input for the open share price on each day in the range and the volume on the last day
-	# The output is binary:whether the opening share price increased on the day after the last day.
+	# the open and close share price and the trading volume on each day in the range.
+	# The output is boolean indicating if the close price tomorrow is greater than today.
 
 	training_input = np.array([])
 	training_target = np.array([])
 
-	for i in range(0, len(open_price)-days_of_data):
+	training_example_number = len(open_price) - days_of_data - 1
+
+	for i in range(0, training_example_number):
 		training_input = np.append(training_input, open_price[i:i+days_of_data])
-		training_target = np.append(training_target, open_price[i+days_of_data-1] > open_price[i+days_of_data] )
+		training_input = np.append(training_input, close_price[i:i+days_of_data])
+		training_input = np.append(training_input, volume[i:i+days_of_data])
+		training_target = np.append(training_target, close_price[i+days_of_data+1] > close_price[i+days_of_data] )
 
 
-	#The above for loop makes 1-dim arrays with the values in them. Need to use reshape
-	#on the input and training data to make it 2-dim. The -1 in reshape will be filled 
-	#automatically and (days_of_data +1) is the number of columns for each input. Likewise
-	#for the target array.
+	# The above for loop makes 1-dim arrays with the values in them. Need to use reshape
+	# on training input to make it 2-dim. Number of columns is 3*days_of_data to account for 
+	# open price, close price and volume. The -1 in reshape will be filled 
+	# automatically and (days_of_data +1) is the number of columns for each input. Likewise
+	# for the target array.
 
-	training_input = np.reshape(training_input, (-1, days_of_data))
-	training_target = np.reshape(training_target, (-1,1))
+	training_input = np.reshape(training_input, (-1, 3*days_of_data))
+	training_target = np.reshape(training_target, (-1, 1))
 	
 	return (training_input, training_target)
