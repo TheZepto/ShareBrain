@@ -41,12 +41,14 @@ def get_share_data_boolean_target(
 
 	# Reverse the order of the historical data so the list starts at start_date
 	historical_data.reverse()
-
+	
 	# Process the returned data into 3 lists of: open_price, close_price, and volume
 	try:
 		open_price = [float(historical_data[i]['Open']) for i in range(0,len(historical_data)) ]
 		close_price = [float(historical_data[i]['Close']) for i in range(0,len(historical_data)) ]
 		volume = [float(historical_data[i]['Volume']) for i in range(0,len(historical_data)) ]
+		high_price = [float(historical_data[i]['High']) for i in range(0,len(historical_data)) ]
+		low_price = [float(historical_data[i]['Low']) for i in range(0,len(historical_data)) ]
 
 	except ValueError:
 		print("Error in processing share data.")
@@ -60,13 +62,15 @@ def get_share_data_boolean_target(
 	training_input = np.array([])
 	training_target = np.array([])
 
-	training_example_number = len(open_price) - days_of_data - 1
+	training_example_number = len(open_price) - days_of_data
 
 	for i in range(0, training_example_number):
+		training_input = np.append(training_input, volume[i:i+days_of_data])
+		training_input = np.append(training_input, high_price[i:i+days_of_data])
+		training_input = np.append(training_input, low_price[i:i+days_of_data])
 		training_input = np.append(training_input, open_price[i:i+days_of_data])
 		training_input = np.append(training_input, close_price[i:i+days_of_data])
 		training_target = np.append(training_target, close_price[i+days_of_data] > close_price[i+days_of_data-1] )
-
 
 	# The above for loop makes 1-dim arrays with the values in them. Need to use reshape
 	# on training input to make it 2-dim. Number of columns is 3*days_of_data to account for 
@@ -74,7 +78,7 @@ def get_share_data_boolean_target(
 	# automatically and (days_of_data +1) is the number of columns for each input. Likewise
 	# for the target array.
 
-	training_input = np.reshape(training_input, (-1, 2*days_of_data))
+	training_input = np.reshape(training_input, (-1, 5*days_of_data))
 	training_target = np.reshape(training_target, (-1,))
 	
 	return (training_input, training_target)

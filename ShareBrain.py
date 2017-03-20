@@ -26,14 +26,14 @@ import sharescraper
 # Get training input and targets from sharescraper
 (price_input, boolean_target) = sharescraper.get_share_data_boolean_target(
 	share_name='ANZ.AX',
-	start_date='2006-01-01',
+	start_date='1990-01-01',
 	end_date='2016-01-01',
-	days_of_data=15,
+	days_of_data=10,
 	use_existing_data=True)
 
 # Separate data into training set and test set
 random_number = 0
-test_split = 0.2
+test_split = 0.3
 X_train, X_test, y_train, y_test = train_test_split(
 	price_input, boolean_target, test_size=test_split, random_state=random_number)
 
@@ -45,12 +45,13 @@ X_test = scaler.transform(X_test)
 
 # Set up the MLPClassifier
 clf = MLPClassifier(
-	activation = 'logistic',
-	solver ='lbfgs',
-	hidden_layer_sizes=(20,10,5),
+	activation = 'tanh',
+	learning_rate = 'adaptive',
+	solver ='adam',
+	hidden_layer_sizes=(10),
 	alpha = 0.01,
-	max_iter = 1E4,
-	tol = 1E-10,
+	max_iter = 10000,
+	tol = 1E-8,
 	warm_start = False,
 	verbose = True )
 
