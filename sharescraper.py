@@ -17,7 +17,7 @@ def get_share_data_boolean_target(
 
 	if use_existing_data:
 		try:
-			historical_data = np.load("Data/ANZ Data.npy")
+			historical_data = np.load("Data/ANZ Data.npy").tolist()
 			print("Data successfully loaded from locally stored file")
 		except:
 			#Scrape the data for the given settings and exit if there is an error
@@ -39,18 +39,22 @@ def get_share_data_boolean_target(
 			quit()
 		print("Scrape succesful")
 
+	# Reverse the order of the historical data so the list starts at start_date
+	historical_data.reverse()
+
 	# Process the returned data into 3 lists of: open_price, close_price, and volume
 	try:
 		open_price = [float(historical_data[i]['Open']) for i in range(0,len(historical_data)) ]
 		close_price = [float(historical_data[i]['Close']) for i in range(0,len(historical_data)) ]
 		volume = [float(historical_data[i]['Volume']) for i in range(0,len(historical_data)) ]
+
 	except ValueError:
 		print("Error in processing share data.")
 		quit()
 
 	# Take the historical data and form a training set for the neural net.
 	# Each training example is built from a range of days and contains:
-	# the open and close share price and the trading volume on each day in the range.
+	# the open and close share price on each day in the range.
 	# The output is boolean indicating if the close price tomorrow is greater than today.
 
 	training_input = np.array([])
@@ -61,7 +65,6 @@ def get_share_data_boolean_target(
 	for i in range(0, training_example_number):
 		training_input = np.append(training_input, open_price[i:i+days_of_data])
 		training_input = np.append(training_input, close_price[i:i+days_of_data])
-		training_input = np.append(training_input, volume[i:i+days_of_data])
 		training_target = np.append(training_target, close_price[i+days_of_data] > close_price[i+days_of_data-1] )
 
 
@@ -71,7 +74,7 @@ def get_share_data_boolean_target(
 	# automatically and (days_of_data +1) is the number of columns for each input. Likewise
 	# for the target array.
 
-	training_input = np.reshape(training_input, (-1, 3*days_of_data))
+	training_input = np.reshape(training_input, (-1, 2*days_of_data))
 	training_target = np.reshape(training_target, (-1,))
 	
 	return (training_input, training_target)
