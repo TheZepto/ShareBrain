@@ -39,11 +39,16 @@ def get_share_data_boolean_target(
 			quit()
 		print("Scrape succesful")
 
+	# Reverse the order of the historical data so the list starts at start_date
+	historical_data.reverse()
+
 	# Process the returned data into 3 lists of: open_price, close_price, and volume
 	try:
 		open_price = [float(historical_data[i]['Open']) for i in range(0,len(historical_data)) ]
 		close_price = [float(historical_data[i]['Close']) for i in range(0,len(historical_data)) ]
 		volume = [float(historical_data[i]['Volume']) for i in range(0,len(historical_data)) ]
+		date = [historical_data[i]['Date'] for i in range(0,20) ]
+		
 	except ValueError:
 		print("Error in processing share data.")
 		quit()

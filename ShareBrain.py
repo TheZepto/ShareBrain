@@ -179,12 +179,14 @@ sell_prob = 0.99
 for n in range(0, len(boolean_target_sim)):
 	X_today = np.append(X_today[:,-28:], price_input_sim[n,-2:])
 	X_today = np.reshape(X_today,(1,-1))
-	
-	pred_today = clf.predict(X_today)
+
+	X_scaled = scaler.transform(X_today)
+	import pdb; pdb.set_trace()
+	pred_today = clf.predict(X_scaled)
 	if pred_today:
-		pred_today_err = clf.predict_proba(X_today)[0,1]
+		pred_today_err = clf.predict_proba(X_scaled)[0,1]
 	else:
-		pred_today_err = clf.predict_proba(X_today)[0,0]
+		pred_today_err = clf.predict_proba(X_scaled)[0,0]
 
 	# Buy 1 share is the price is predicted to increase, we don't already
 	# own a share, and the prediction probability is greater than the limit
