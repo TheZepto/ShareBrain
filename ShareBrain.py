@@ -14,8 +14,7 @@ import sys
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.neural_network import MLPClassifier
-from sklearn.model_selection import GridSearchCV
+from sklearn.linear_model import LogisticRegression
 
 # My libraries
 import sharescraper
@@ -41,13 +40,14 @@ X_train = scaler.transform(X_train)
 X_test = scaler.transform(X_test)
 
 #Set up the MLPClassifier
-clf = MLPClassifier(
-	activation = 'logistic',
-	solver ='lbfgs',
-	hidden_layer_sizes=(2),
-	alpha = 1E-7,
-	tol = 1E-5,
-	verbose = False )
+clf = LogisticRegression(
+	C = 1000,
+	fit_intercept = True,
+	penalty = 'l1',
+	solver = 'liblinear',
+	tol = 1E-10,
+	max_iter = 1000,
+	verbose = 1 )
 
 accuracy_check = True
 while accuracy_check:
@@ -59,6 +59,6 @@ while accuracy_check:
 	train_accuracy = clf.score(X_train, y_train)
 	print("The network fitted the test data {:.3f}% and the training data {:.3f}%."
 		.format(test_accuracy*100, train_accuracy*100))
-	accuracy_check = test_accuracy < 0.85
+	accuracy_check = test_accuracy < 0.1
 
-import pdb; pdb.set_trace()
+# import pdb; pdb.set_trace()
