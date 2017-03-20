@@ -80,36 +80,78 @@ predictions = clf.predict(X_test)
 predictions_prob = clf.predict_proba(X_test)
 
 # Separate the correct and incorrect predictions into their own arrays
-correct_predictions = np.array([])
-correct_predictions_prob = np.array([])
-i_correct_predictions = np.array([])
-incorrect_predictions = np.array([])
-incorrect_predictions_prob = np.array([])
-i_incorrect_predictions = np.array([])
+true_pos = []
+true_pos_prob = []
+i_true_pos = []
+true_neg = []
+true_neg_prob = []
+i_true_neg = []
+false_pos = []
+false_pos_prob = []
+i_false_pos = []
+false_neg = []
+false_neg_prob = []
+i_false_neg = []
 
 for n in range(0,len(predictions)):
-	if predictions[n] == y_test[n]:
-		correct_predictions = np.append(correct_predictions, close_price_test[n])
-		correct_predictions_prob = np.append(correct_predictions, predictions_prob[n])
-		i_correct_predictions = np.append(i_correct_predictions, i_test[n])
-	else :
-		incorrect_predictions = np.append(incorrect_predictions, close_price_test[n])
-		incorrect_predictions_prob = np.append(incorrect_predictions, predictions_prob[n])
-		i_incorrect_predictions = np.append(i_incorrect_predictions, i_test[n])
+	if predictions[n] == True and y_test[n] == True:
+		true_pos = np.append(true_pos, close_price_test[n])
+		true_pos_prob = np.append(true_pos_prob, predictions_prob[n,1])
+		i_true_pos = np.append(i_true_pos, i_test[n])
+	if predictions[n] == False and y_test[n] == False:
+		true_neg = np.append(true_neg, close_price_test[n])
+		true_neg_prob = np.append(true_neg_prob, predictions_prob[n,0])
+		i_true_neg = np.append(i_true_neg, i_test[n])
+	if predictions[n] == True and y_test[n] == False:
+		false_pos = np.append(false_pos, close_price_test[n])
+		false_pos_prob = np.append(false_pos_prob, predictions_prob[n,1])
+		i_false_pos = np.append(i_false_pos, i_test[n])
+	if predictions[n] == False and y_test[n] == True:
+		false_neg = np.append(false_neg, close_price_test[n])
+		false_neg_prob = np.append(false_neg_prob, predictions_prob[n,0])
+		i_false_neg = np.append(i_false_neg, i_test[n])
+
+#Calculate precision, recall and F1 scores and display them
+precision = len(true_pos) / (len(true_pos) + len(false_pos))
+recall = len(true_pos) / (len(true_pos) + len(false_neg))
+F1_score = 2 * precision * recall / (precision + recall)
+print("The precision is {:.3f}, the recall is {:.3f}, and the F1 score is {:.3f}."
+	.format(precision, recall, F1_score))
 
 # Plot the test and training data
-fig, ax = plt.subplots()
-ax.plot(i_train, close_price_train,'b.')
-ax.plot(i_test, close_price_test,'m.')
+fig, (ax1, ax2) = plt.subplots(2,1)
+ax1.plot(i_train, close_price_train,'b.')
+ax1.plot(i_test, close_price_test,'m.')
 
 # Shade the regions where the predictions are made
 # This is set up to colour the next price data point from when the prediction is made
-for n in range(0,len(correct_predictions)):
-	ax.fill_between(i_correct_predictions[n]+[0.5, 1.5], 0, 100, facecolor='g', linewidth=0)
-for n in range(0,len(incorrect_predictions)):
-	ax.fill_between(i_incorrect_predictions[n]+[0.5, 1.5], 0, 100, facecolor='r', linewidth=0)
+# The shaded area starts from the middle of the graph and extends upwards when
+# the price actually increased and extends downwards when the true price decreased.
+# Red indicates the prediction was incorrect and green for correct.
+graph_top = np.max(np.append(close_price_test,close_price_train))+2
+graph_bottom = np.min(np.append(close_price_test,close_price_train))-2
+graph_middle = 0.5*(graph_top+graph_bottom)
+
+for n in range(0,len(true_pos)):
+	ax1.fill_between(i_true_pos[n]+[0.5, 1.5], graph_middle, 100, facecolor='g', linewidth=0)
+
+for n in range(0,len(true_neg)):
+	ax1.fill_between(i_true_neg[n]+[0.5, 1.5], 0, graph_middle, facecolor='g', linewidth=0)
+
+for n in range(0,len(false_pos)):
+	ax1.fill_between(i_false_pos[n]+[0.5, 1.5], graph_middle, 100, facecolor='r', linewidth=0)
+
+for n in range(0,len(false_neg)):
+	ax1.fill_between(i_false_neg[n]+[0.5, 1.5], 0, graph_middle, facecolor='r', linewidth=0)
+
+# Plot the prediction uncertainty on the second axis
+ax2.plot(i_true_pos, true_pos_prob,'g+')
+ax2.plot(i_true_neg, true_neg_prob, 'g.')
+ax2.plot(i_false_pos, false_pos_prob, 'r+')
+ax2.plot(i_false_neg, false_neg_prob, 'r.')
 
 # Display the plot
-ax.set_ylim(bottom= np.min(np.append(close_price_test,close_price_train))-2, top=np.max(np.append(close_price_test,close_price_train))+2)
-ax.set_xlim(left=0, right= len(boolean_target))
+ax1.set_ylim(bottom=graph_bottom , top=graph_top)
+ax1.set_xlim(left=0, right= len(boolean_target))
+ax2.set_xlim(left=0, right= len(boolean_target))
 plt.show()
