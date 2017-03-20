@@ -28,7 +28,7 @@ import sharescraper
 	share_name='ANZ.AX',
 	start_date='2006-01-01',
 	end_date='2016-01-01',
-	days_of_data=30,
+	days_of_data=15,
 	use_existing_data=True)
 
 # Separate data into training set and test set
@@ -45,10 +45,10 @@ X_test = scaler.transform(X_test)
 
 # Set up the MLPClassifier
 clf = MLPClassifier(
-	activation = 'tanh',
+	activation = 'logistic',
 	solver ='lbfgs',
 	hidden_layer_sizes=(20,10,5),
-	alpha = 1E-2,
+	alpha = 0.01,
 	max_iter = 1E4,
 	tol = 1E-10,
 	warm_start = False,
@@ -114,9 +114,15 @@ for n in range(0,len(predictions)):
 		i_false_neg = np.append(i_false_neg, i_test[n])
 
 #Calculate precision, recall and F1 scores and display them
-precision = len(true_pos) / (len(true_pos) + len(false_pos))
-recall = len(true_pos) / (len(true_pos) + len(false_neg))
-F1_score = 2 * precision * recall / (precision + recall)
+try:	
+	precision = len(true_pos) / (len(true_pos) + len(false_pos))
+	recall = len(true_pos) / (len(true_pos) + len(false_neg))
+	F1_score = 2 * precision * recall / (precision + recall)
+except:
+	precision = 0
+	recall = 0
+	F1_score = 0
+
 print("The precision is {:.3f}, the recall is {:.3f}, and the F1 score is {:.3f}."
 	.format(precision, recall, F1_score))
 
