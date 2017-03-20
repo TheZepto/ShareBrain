@@ -28,8 +28,8 @@ import sharescraper
 	share_name='ANZ.AX',
 	start_date='2006-01-01',
 	end_date='2016-01-01',
-	days_of_data=15,
-	use_existing_data=False)
+	days_of_data=30,
+	use_existing_data=True)
 
 # Separate data into training set and test set
 random_number = 0
@@ -45,13 +45,14 @@ X_test = scaler.transform(X_test)
 
 # Set up the MLPClassifier
 clf = MLPClassifier(
-	activation = 'logistic',
+	activation = 'tanh',
 	solver ='lbfgs',
-	hidden_layer_sizes=(2),
-	alpha = 1E-7,
-	tol = 1E-5,
-	warm_start = True,
-	verbose = False )
+	hidden_layer_sizes=(20,10,5),
+	alpha = 1E-2,
+	max_iter = 1E4,
+	tol = 1E-10,
+	warm_start = False,
+	verbose = True )
 
 # Train the network on the dataset until the test_accuracy raches a threshold
 accuracy_check = True
@@ -64,7 +65,7 @@ while accuracy_check:
 	train_accuracy = clf.score(X_train, y_train)
 	print("The network fitted the test data {:.3f}% and the training data {:.3f}%."
 		.format(test_accuracy*100, train_accuracy*100))
-	accuracy_check = test_accuracy < 0.8
+	accuracy_check = test_accuracy < 0.1
 
 # Build an array of indices to order the train and test data back in the plot
 indices = np.arange(len(boolean_target))
@@ -155,47 +156,47 @@ ax2.plot(i_false_neg, false_neg_prob, 'r.')
 ax1.set_ylim(bottom=graph_bottom , top=graph_top)
 ax1.set_xlim(left=0, right= len(boolean_target))
 ax2.set_xlim(left=0, right= len(boolean_target))
-# plt.show()
+plt.show()
 
-# Use the network to predict earning
-(price_input_sim, boolean_target_sim) = sharescraper.get_share_data_boolean_target(
-	share_name='ANZ.AX',
-	start_date='2016-01-01',
-	end_date='2016-03-01',
-	days_of_data=15,
-	use_existing_data=False)
+# # Use the network to predict earning
+# (price_input_sim, boolean_target_sim) = sharescraper.get_share_data_boolean_target(
+# 	share_name='ANZ.AX',
+# 	start_date='2016-01-01',
+# 	end_date='2016-03-01',
+# 	days_of_data=15,
+# 	use_existing_data=False)
 
-# Build the input array for the first day of prediction
-X_today = price_input[-1,:]
-X_today = np.reshape(X_today,(1,-1))
+# # Build the input array for the first day of prediction
+# X_today = price_input[-1,:]
+# X_today = np.reshape(X_today,(1,-1))
 
-#Initialise the simulation variables
-shares_owned = False
-profit = 0
-buy_prob = 0.99
-sell_prob = 0.99
+# #Initialise the simulation variables
+# shares_owned = False
+# profit = 0
+# buy_prob = 0.99
+# sell_prob = 0.99
 
-#Begin the market simulation
-for n in range(0, len(boolean_target_sim)):
-	X_today = np.append(X_today[:,-28:], price_input_sim[n,-2:])
-	X_today = np.reshape(X_today,(1,-1))
+# #Begin the market simulation
+# for n in range(0, len(boolean_target_sim)):
+# 	X_today = np.append(X_today[:,-28:], price_input_sim[n,-2:])
+# 	X_today = np.reshape(X_today,(1,-1))
 
-	X_scaled = scaler.transform(X_today)
-	import pdb; pdb.set_trace()
-	pred_today = clf.predict(X_scaled)
-	if pred_today:
-		pred_today_err = clf.predict_proba(X_scaled)[0,1]
-	else:
-		pred_today_err = clf.predict_proba(X_scaled)[0,0]
+# 	X_scaled = scaler.transform(X_today)
+# 	import pdb; pdb.set_trace()
+# 	pred_today = clf.predict(X_scaled)
+# 	if pred_today:
+# 		pred_today_err = clf.predict_proba(X_scaled)[0,1]
+# 	else:
+# 		pred_today_err = clf.predict_proba(X_scaled)[0,0]
 
-	# Buy 1 share is the price is predicted to increase, we don't already
-	# own a share, and the prediction probability is greater than the limit
-	if pred_today == True and shares_owned == False and pred_today_err >= buy_prob :
-		profit = profit - X_today[:,-1]
-		shares_owned = True
+# 	# Buy 1 share is the price is predicted to increase, we don't already
+# 	# own a share, and the prediction probability is greater than the limit
+# 	if pred_today == True and shares_owned == False and pred_today_err >= buy_prob :
+# 		profit = profit - X_today[:,-1]
+# 		shares_owned = True
 
-	if pred_today == False and shares_owned == True and pred_today_err >= sell_prob :
-		profit = profit + X_today[:,-1]
-		shares_owned = False
+# 	if pred_today == False and shares_owned == True and pred_today_err >= sell_prob :
+# 		profit = profit + X_today[:,-1]
+# 		shares_owned = False
 
-	print(X_today[:,-1], profit, pred_today, pred_today_err)
+# 	print(X_today[:,-1], profit, pred_today, pred_today_err)

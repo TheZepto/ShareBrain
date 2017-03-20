@@ -17,7 +17,7 @@ def get_share_data_boolean_target(
 
 	if use_existing_data:
 		try:
-			historical_data = np.load("Data/ANZ Data.npy")
+			historical_data = np.load("Data/ANZ Data.npy").tolist()
 			print("Data successfully loaded from locally stored file")
 		except:
 			#Scrape the data for the given settings and exit if there is an error
@@ -47,8 +47,7 @@ def get_share_data_boolean_target(
 		open_price = [float(historical_data[i]['Open']) for i in range(0,len(historical_data)) ]
 		close_price = [float(historical_data[i]['Close']) for i in range(0,len(historical_data)) ]
 		volume = [float(historical_data[i]['Volume']) for i in range(0,len(historical_data)) ]
-		date = [historical_data[i]['Date'] for i in range(0,20) ]
-		
+
 	except ValueError:
 		print("Error in processing share data.")
 		quit()
