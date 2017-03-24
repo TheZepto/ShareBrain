@@ -24,12 +24,15 @@ import sharescraper
 # Boolean prediction of whether the close_price tomorrow will be greater than today.
 
 # Get training input and targets from sharescraper
-(price_input, boolean_target) = sharescraper.get_share_data_boolean_target(
+historical_data = sharescraper.get_share_data(
 	share_name='ANZ.AX',
-	start_date='1990-01-01',
+	start_date='1920-01-01',
 	end_date='2016-01-01',
-	days_of_data=10,
 	use_existing_data=True)
+
+(price_input, boolean_target) = sharescraper.proc_share_bool_target(
+	historical_data,
+	days_of_data=10)
 
 # Separate data into training set and test set
 random_number = 0
