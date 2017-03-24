@@ -26,7 +26,7 @@ import sharescraper
 # Get training input and targets from sharescraper
 historical_data = sharescraper.get_share_data(
 	share_name='ANZ.AX',
-	start_date='1920-01-01',
+	start_date='2000-01-01',
 	end_date='2016-01-01',
 	use_existing_data=True)
 
