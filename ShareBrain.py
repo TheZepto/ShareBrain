@@ -48,13 +48,12 @@ X_test = scaler.transform(X_test)
 
 # Set up the MLPClassifier
 clf = MLPClassifier(
-	activation = 'tanh',
-	learning_rate = 'adaptive',
+	activation = 'logistic',
 	solver ='adam',
-	hidden_layer_sizes=(10),
-	alpha = 0.01,
+	hidden_layer_sizes=(100,200,100,100),
+	alpha = 1,
 	max_iter = 10000,
-	tol = 1E-8,
+	tol = 1E-5,
 	warm_start = False,
 	verbose = True )
 
