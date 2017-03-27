@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.neural_network import MLPClassifier
+from sklearn.neural_network import MLPRegressor
 
 # My libraries
 import sharescraper
@@ -30,15 +30,15 @@ historical_data = sharescraper.get_share_data(
 	end_date='2016-01-01',
 	use_existing_data=True)
 
-(price_input, boolean_target) = sharescraper.proc_share_bool_target(
+(price_input, price_target) = sharescraper.proc_share_real_target(
 	historical_data,
-	days_of_data=10)
+	days_of_data=50)
 
 # Separate data into training set and test set
 random_number = 0
 test_split = 0.3
 X_train, X_test, y_train, y_test = train_test_split(
-	price_input, boolean_target, test_size=test_split, random_state=random_number)
+	price_input, price_target, test_size=test_split, random_state=random_number)
 
 # Feature scale the training data and apply the scaling to the training and test datasets.
 scaler = StandardScaler()
@@ -47,10 +47,10 @@ X_train = scaler.transform(X_train)
 X_test = scaler.transform(X_test)
 
 # Set up the MLPClassifier
-clf = MLPClassifier(
-	activation = 'logistic',
+clf = MLPRegressor(
+	activation = 'identity',
 	solver ='adam',
-	hidden_layer_sizes=(100,200,100,100),
+	hidden_layer_sizes=(3000,1000,500,100),
 	alpha = 1,
 	max_iter = 10000,
 	tol = 1E-5,
@@ -66,12 +66,12 @@ while accuracy_check:
 	# Use the cross validation set to calculate the accuracy of the network
 	test_accuracy = clf.score(X_test, y_test)
 	train_accuracy = clf.score(X_train, y_train)
-	print("The network fitted the test data {:.3f}% and the training data {:.3f}%."
+	print("The network fitted the test data {:.3f}% and the training data {:.3f}% (R2 score)."
 		.format(test_accuracy*100, train_accuracy*100))
 	accuracy_check = test_accuracy < 0.1
 
 # Build an array of indices to order the train and test data back in the plot
-indices = np.arange(len(boolean_target))
+indices = np.arange(len(price_target))
 i_train, i_test, iy_train, iy_test = train_test_split(
 	indices, indices, test_size=test_split, random_state=random_number)
 
@@ -82,89 +82,37 @@ close_price_train = scaler.inverse_transform(X_train)[:,-1]
 
 # Generate the predictions for the test data
 predictions = clf.predict(X_test)
-predictions_prob = clf.predict_proba(X_test)
-
-# Separate the correct and incorrect predictions into their own arrays
-true_pos = []
-true_pos_prob = []
-i_true_pos = []
-true_neg = []
-true_neg_prob = []
-i_true_neg = []
-false_pos = []
-false_pos_prob = []
-i_false_pos = []
-false_neg = []
-false_neg_prob = []
-i_false_neg = []
-
-for n in range(0,len(predictions)):
-	if predictions[n] == True and y_test[n] == True:
-		true_pos = np.append(true_pos, close_price_test[n])
-		true_pos_prob = np.append(true_pos_prob, predictions_prob[n,1])
-		i_true_pos = np.append(i_true_pos, i_test[n])
-	if predictions[n] == False and y_test[n] == False:
-		true_neg = np.append(true_neg, close_price_test[n])
-		true_neg_prob = np.append(true_neg_prob, predictions_prob[n,0])
-		i_true_neg = np.append(i_true_neg, i_test[n])
-	if predictions[n] == True and y_test[n] == False:
-		false_pos = np.append(false_pos, close_price_test[n])
-		false_pos_prob = np.append(false_pos_prob, predictions_prob[n,1])
-		i_false_pos = np.append(i_false_pos, i_test[n])
-	if predictions[n] == False and y_test[n] == True:
-		false_neg = np.append(false_neg, close_price_test[n])
-		false_neg_prob = np.append(false_neg_prob, predictions_prob[n,0])
-		i_false_neg = np.append(i_false_neg, i_test[n])
-
-#Calculate precision, recall and F1 scores and display them
-try:	
-	precision = len(true_pos) / (len(true_pos) + len(false_pos))
-	recall = len(true_pos) / (len(true_pos) + len(false_neg))
-	F1_score = 2 * precision * recall / (precision + recall)
-except:
-	precision = 0
-	recall = 0
-	F1_score = 0
-
-print("The precision is {:.3f}, the recall is {:.3f}, and the F1 score is {:.3f}."
-	.format(precision, recall, F1_score))
 
 # Plot the test and training data
-fig, (ax1, ax2) = plt.subplots(2,1)
+fig, ax1, = plt.subplots(1,1)
 ax1.plot(i_train, close_price_train,'b.')
 ax1.plot(i_test, close_price_test,'m.')
+ax1.plot(i_test+1, predictions,'k+')
 
-# Shade the regions where the predictions are made
-# This is set up to colour the next price data point from when the prediction is made
-# The shaded area starts from the middle of the graph and extends upwards when
-# the price actually increased and extends downwards when the true price decreased.
-# Red indicates the prediction was incorrect and green for correct.
-graph_top = np.max(np.append(close_price_test,close_price_train))+2
-graph_bottom = np.min(np.append(close_price_test,close_price_train))-2
-graph_middle = 0.5*(graph_top+graph_bottom)
+# Draw lines between predicted price and actual close price
+# Red indicates that the network failed to predict the correct trend
+# from one day to the next and green is vice-versa.
+# Also use this opportunity to count correct trend predictions.
 
-for n in range(0,len(true_pos)):
-	ax1.fill_between(i_true_pos[n]+[0.5, 1.5], graph_middle, 100, facecolor='g', linewidth=0)
+correct_trend_prediction = 0
 
-for n in range(0,len(true_neg)):
-	ax1.fill_between(i_true_neg[n]+[0.5, 1.5], 0, graph_middle, facecolor='g', linewidth=0)
+for n in range(0,len(predictions)):
+	if predictions[n] >= close_price_test[n] and y_test[n] >= close_price_test[n]:
+		ax1.plot([i_test[n]+1, i_test[n]+1], [y_test[n], predictions[n]], 'g-') 
+		correct_trend_prediction = correct_trend_prediction + 1
+	if predictions[n] < close_price_test[n] and y_test[n] < close_price_test[n]:
+		ax1.plot([i_test[n]+1, i_test[n]+1], [y_test[n], predictions[n]], 'g-')  
+		correct_trend_prediction = correct_trend_prediction + 1
+	if predictions[n] >= close_price_test[n] and y_test[n] < close_price_test[n]:
+		ax1.plot([i_test[n]+1, i_test[n]+1], [y_test[n], predictions[n]], 'r-') 
+	if predictions[n] < close_price_test[n] and y_test[n] >= close_price_test[n]:
+		ax1.plot([i_test[n]+1, i_test[n]+1], [y_test[n], predictions[n]], 'r-') 
 
-for n in range(0,len(false_pos)):
-	ax1.fill_between(i_false_pos[n]+[0.5, 1.5], graph_middle, 100, facecolor='r', linewidth=0)
-
-for n in range(0,len(false_neg)):
-	ax1.fill_between(i_false_neg[n]+[0.5, 1.5], 0, graph_middle, facecolor='r', linewidth=0)
-
-# Plot the prediction uncertainty on the second axis
-ax2.plot(i_true_pos, true_pos_prob,'g+')
-ax2.plot(i_true_neg, true_neg_prob, 'g.')
-ax2.plot(i_false_pos, false_pos_prob, 'r+')
-ax2.plot(i_false_neg, false_neg_prob, 'r.')
+print("The network correctly predicted the price trend {:.3f}%."
+	.format(correct_trend_prediction/len(predictions)*100) )
 
 # Display the plot
-ax1.set_ylim(bottom=graph_bottom , top=graph_top)
-ax1.set_xlim(left=0, right= len(boolean_target))
-ax2.set_xlim(left=0, right= len(boolean_target))
+ax1.set_xlim(left=0, right= len(price_target))
 plt.show()
 
 # # Use the network to predict earning
