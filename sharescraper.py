@@ -137,7 +137,7 @@ def proc_share_real_target(
 		training_input = np.append(training_input, volume[i:i+days_of_data])
 		training_input = np.append(training_input, high_price[i:i+days_of_data])
 		training_input = np.append(training_input, low_price[i:i+days_of_data])
-		training_input = np.append(training_input, open_price[i:i+days_of_data])
+		# training_input = np.append(training_input, open_price[i:i+days_of_data])
 		training_input = np.append(training_input, close_price[i:i+days_of_data])
 		training_target = np.append(training_target, close_price[i+days_of_data])
 
@@ -147,7 +147,7 @@ def proc_share_real_target(
 	# automatically and (days_of_data +1) is the number of columns for each input. Likewise
 	# for the target array.
 
-	training_input = np.reshape(training_input, (-1, 5*days_of_data))
+	training_input = np.reshape(training_input, (-1, 4*days_of_data))
 	training_target = np.reshape(training_target, (-1,))
 	
 	return (training_input, training_target)

@@ -32,7 +32,7 @@ historical_data = sharescraper.get_share_data(
 
 (price_input, price_target) = sharescraper.proc_share_real_target(
 	historical_data,
-	days_of_data=50)
+	days_of_data=10)
 
 # Separate data into training set and test set
 random_number = 0
@@ -48,12 +48,12 @@ X_test = scaler.transform(X_test)
 
 # Set up the MLPClassifier
 clf = MLPRegressor(
-	activation = 'identity',
-	solver ='adam',
-	hidden_layer_sizes=(3000,1000,500,100),
-	alpha = 1,
-	max_iter = 10000,
-	tol = 1E-5,
+	activation = 'logistic',
+	solver ='lbfgs',
+	hidden_layer_sizes=(500,500,100,10),
+	alpha = 0.1,
+	max_iter = 1000,
+	tol = 1E-4,
 	warm_start = False,
 	verbose = True )
 
